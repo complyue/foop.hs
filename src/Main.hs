@@ -13,6 +13,10 @@ main :: IO ()
 main = do
   putStrLn "<< Functional Object Oriented Programming >>"
 
+  oop'counter
+
+oop'counter :: IO ()
+oop'counter = do
   let world =
         ObjectWorld
           { next_oid = 1,
