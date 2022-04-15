@@ -2,19 +2,132 @@
 
 > Object Oriented Programming implemented in Functional Paradigm
 
-- [Counter](#counter)
-  - [Haskell (FOOP)](#haskell-foop)
-  - [C++](#c)
-  - [Python](#python)
-- [Greet](#greet)
-  - [Haskell (FOOP)](#haskell-foop-1)
-  - [Python](#python-1)
+- [Enabler (Haskell, 90 LoC)](#enabler-haskell-90-loc)
+- [Counter Example](#counter-example)
+  - [Haskell (FOOP, 30 LoC)](#haskell-foop-30-loc)
+  - [C++ (10 LoC)](#c-10-loc)
+  - [Python (10 LoC)](#python-10-loc)
+- [Greet Example](#greet-example)
+  - [Haskell (FOOP, 70 LoC)](#haskell-foop-70-loc)
+  - [Python (20 LoC)](#python-20-loc)
 
-## Counter
+## Enabler (Haskell, 90 LoC)
 
-### Haskell (FOOP)
+[OOP.hs](./src/OOP.hs)
+
+<details>
+
+<summary>
+Expand to see 90+ lines
+</summary>
+
+```haskell
+type ObjectIdent = Int
+
+nextOid :: ObjectIdent -> ObjectIdent
+nextOid = (+ 1)
+
+type PropertyIdent = String
+
+type MethodIdent = (PropertyIdent, MethodSignature)
+
+type MethodSignature = ([TypeRep], TypeRep)
+
+type MethodImplementation = Object -> [Dynamic] -> OOM Dynamic
+
+type ObjectState = Map PropertyIdent Dynamic
+
+data Class = Class
+  { class_name :: PropertyIdent,
+    super_class :: Maybe Class,
+    obj_constructors :: Map [TypeRep] ([Dynamic] -> OOM ObjectState),
+    instance_methods :: Map MethodIdent MethodImplementation
+    -- static methods omitted here, that's actually simpler than instance methods
+  }
+
+data Object = Object
+  { oid :: ObjectIdent,
+    obj_class :: Class,
+    obj_internals :: ObjectState
+  }
+
+data ObjectWorld = ObjectWorld
+  { next_oid :: ObjectIdent,
+    classes :: Map PropertyIdent Class,
+    population :: Map ObjectIdent Object
+  }
+
+{- Object Oriented Monad
+note: "Out Of Memory" never expected -}
+type OOM = StateT ObjectWorld IO
+
+defineClass ::
+  PropertyIdent ->
+  Maybe PropertyIdent ->
+  Map [TypeRep] ([Dynamic] -> OOM ObjectState) ->
+  Map MethodIdent MethodImplementation ->
+  OOM Class
+defineClass name superName ctors mths = do
+  world <- get
+  let cls =
+        Class
+          { class_name = name,
+            super_class = fromJust . flip lookup (classes world) <$> superName,
+            obj_constructors = ctors,
+            instance_methods = mths
+          }
+  put $ world {classes = insert name cls (classes world)}
+  return cls
+
+newObject :: Class -> [Dynamic] -> OOM ObjectIdent
+newObject cls ctorArgs = do
+  world <- get
+  let ctor = lookup (dynTypeOf <$> ctorArgs) (obj_constructors cls)
+  internals <- fromJust ctor ctorArgs
+  let oid = next_oid world
+      obj =
+        Object
+          { oid = oid,
+            obj_class = cls,
+            obj_internals = internals
+          }
+  put
+    world
+      { next_oid = nextOid (next_oid world),
+        population = insert oid obj (population world)
+      }
+  return oid
+
+deref :: ObjectIdent -> OOM Object
+deref oid = fromJust . lookup oid . population <$> get
+
+invokeMethod :: ObjectIdent -> PropertyIdent -> [Dynamic] -> TypeRep -> OOM Dynamic
+invokeMethod oid name args expectReturn = do
+  obj <- deref oid
+  let mth = resolveMethod (Just $ obj_class obj)
+  fromJust mth obj args
+  where
+    sig = (dynTypeOf <$> args, expectReturn)
+    resolveMethod :: Maybe Class -> Maybe MethodImplementation
+    resolveMethod Nothing = Nothing
+    resolveMethod (Just cls) = case lookup (name, sig) (instance_methods cls) of
+      Nothing -> resolveMethod (super_class cls)
+      Just mth -> return mth
+```
+
+</details>
+
+## Counter Example
+
+### Haskell (FOOP, 30 LoC)
 
 [Counter.hs](./src/Counter.hs)
+
+<details>
+
+<summary>
+Expand to see 30+ lines
+</summary>
 
 ```haskell
 oop'counter :: OOM ()
@@ -54,9 +167,17 @@ oop'counter = do
     typeInt = typeRep (Proxy @Int)
 ```
 
-### C++
+</details>
+
+### C++ (10 LoC)
 
 [counter.cxx](./oop/counter.cxx)
+
+<details>
+
+<summary>
+Expand to see 10+ lines
+</summary>
 
 ```c++
 class Counter {
@@ -75,12 +196,19 @@ int main() {
   cout << "Done, result= " << result << endl;
   delete counter;
 }
-
 ```
 
-### Python
+</details>
+
+### Python (10 LoC)
 
 [counter.py](./oop/counter.py)
+
+<details>
+
+<summary>
+Expand to see 10+ lines
+</summary>
 
 ```py
 class Counter:
@@ -101,11 +229,19 @@ result = counter.increase()
 print("Done, result= ", result)
 ```
 
-## Greet
+</details>
 
-### Haskell (FOOP)
+## Greet Example
+
+### Haskell (FOOP, 70 LoC)
 
 [Greet.hs](./src/Greet.hs)
+
+<details>
+
+<summary>
+Expand to see 70+ lines
+</summary>
 
 ```haskell
 oop'greet :: OOM ()
@@ -181,9 +317,17 @@ oop'greet = void $ do
     valueVoid = toDyn ()
 ```
 
-### Python
+</details>
+
+### Python (20 LoC)
 
 [greet.py](./oop/greet.py)
+
+<details>
+
+<summary>
+Expand to see 20+ lines
+</summary>
 
 ```py
 class Animal:
@@ -213,3 +357,5 @@ def main():
 
 main()
 ```
+
+</details>
