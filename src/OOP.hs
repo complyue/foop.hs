@@ -48,7 +48,7 @@ data ObjectWorld = ObjectWorld
 
 {- Object Oriented Monad
 note: "Out Of Memory" never expected -}
-type OOM = State ObjectWorld
+type OOM = StateT ObjectWorld IO
 
 defineClass ::
   PropertyIdent ->
