@@ -1,0 +1,44 @@
+cabal-version:      2.4
+name:               foop
+version:            0.1.0.0
+license:            BSD-3-Clause
+author:             ComplYue
+maintainer:         compl.yue@icloud.com
+build-type:         Simple
+extra-source-files: Readme.md
+
+executable foop
+  main-is:            Main.hs
+  other-modules:
+    OOP
+
+  build-depends:
+    , base  >=4.12 && <5
+    , transformers
+    , mtl
+    , containers
+
+  hs-source-dirs:     src
+  default-language:   Haskell2010
+  default-extensions:
+    BangPatterns
+    ConstraintKinds
+    DataKinds
+    DerivingStrategies
+    FlexibleContexts
+    FlexibleInstances
+    GADTs
+    GeneralizedNewtypeDeriving
+    KindSignatures
+    LambdaCase
+    MultiWayIf
+    OverloadedStrings
+    PatternSynonyms
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneDeriving
+    TupleSections
+    TypeApplications
+    AllowAmbiguousTypes
+    TypeOperators
+    ViewPatterns
