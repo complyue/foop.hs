@@ -11,6 +11,8 @@ executable foop
   main-is:            Main.hs
   other-modules:
     OOP
+    Counter
+    Greet
 
   build-depends:
     , base  >=4.12 && <5
